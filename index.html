@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#000000"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>UBH v3 — Quada Edition</title>
+<link rel="manifest" href="manifest.json"/>
+<style>
+:root {
+  --bg: #000;
+  --surface: #0f0f0f;
+  --card: #1a1a1a;
+  --border: #2a2a2a;
+  --accent: #00d4ff;
+  --accent2: #00ff88;
+  --warn: #ff6b35;
+  --text: #fff;
+  --text2: #a0a0a0;
+  --text3: #5a5a5a;
+  --danger: #ff4444;
+  --success: #00cc66;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Display',system-ui,sans-serif;overflow:hidden}
+body{display:flex;flex-direction:column}
+#app{flex:1;overflow-y:auto;padding:0 0 80px;scroll-behavior:smooth}
+/* NAV */
+nav{position:fixed;bottom:0;left:0;right:0;background:#0a0a0a;border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;background:none;border:none;color:var(--text3);font-size:10px;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;transition:color 0.2s}
+.nav-btn.active{color:var(--accent)}
+.nav-btn svg{width:20px;height:20px;stroke-width:1.5;fill:none;stroke:currentColor}
+/* HEADER */
+.header{padding:56px 20px 16px;border-bottom:1px solid var(--border)}
+.header h1{font-size:22px;font-weight:700;letter-spacing:-0.5px}
+.header p{font-size:13px;color:var(--text2);margin-top:4px}
+/* SECTIONS */
+.section{display:none;min-height:100%}
+.section.active{display:block}
+/* SESSION CARDS */
+.session-grid{padding:16px}
+.session-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;cursor:pointer;transition:border-color 0.2s,transform 0.1s}
+.session-card:active{transform:scale(0.98)}
+.session-card:hover{border-color:var(--accent)}
+.session-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.session-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.session-card h2{font-size:18px;font-weight:700;margin-bottom:4px}
+.session-card .meta{font-size:12px;color:var(--text2);display:flex;gap:12px;flex-wrap:wrap}
+.session-card .meta span{display:flex;align-items:center;gap:4px}
+/* WORKOUT VIEW */
+.workout-header{padding:20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.workout-header .back{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:12px;background:none;border:none}
+.workout-header .back svg{width:16px;height:16px;stroke:currentColor;fill:none}
+.phase-label{font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.workout-header h2{font-size:20px;font-weight:700}
+/* EXERCISE CARD */
+.exercise-card{background:var(--card);border:1px solid var(--border);border-radius:14px;margin:12px 16px;overflow:hidden}
+.exercise-header{padding:16px;cursor:pointer;display:flex;justify-content:space-between;align-items:flex-start}
+.exercise-header h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.exercise-meta{font-size:12px;color:var(--text2)}
+.exercise-chevron{width:18px;height:18px;stroke:var(--text3);fill:none;stroke-width:2;transition:transform 0.2s;flex-shrink:0;margin-top:2px}
+.exercise-card.open .exercise-chevron{transform:rotate(180deg)}
+.exercise-body{display:none;border-top:1px solid var(--border)}
+.exercise-card.open .exercise-body{display:block}
+.tech-note{padding:12px 16px;background:#0a1a0a;border-bottom:1px solid var(--border);font-size:12px;color:#5dbb6e;line-height:1.5}
+.tech-note strong{color:#00cc66}
+/* SET LOGGER */
+.sets-area{padding:12px 16px}
+.set-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:10px;background:var(--surface);border-radius:10px;border:1px solid transparent;transition:border-color 0.2s}
+.set-row.done{border-color:#00cc66}
+.set-num{font-size:11px;color:var(--text3);width:20px;text-align:center;font-weight:600}
+.set-input{flex:1;background:var(--border);border:none;border-radius:8px;padding:8px;color:var(--text);font-size:14px;text-align:center;font-family:inherit}
+.set-input:focus{outline:2px solid var(--accent);background:#1a2a3a}
+.set-label{font-size:10px;color:var(--text3);text-align:center;margin-top:2px}
+.log-btn{background:var(--accent);color:#000;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-top:8px;letter-spacing:0.05em;transition:opacity 0.2s}
+.log-btn:active{opacity:0.8}
+.log-btn.done{background:var(--success)}
+.progress-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;margin:8px 16px}
+.progress-badge.up{background:#002a15;color:var(--accent2)}
+.progress-badge.same{background:#1a1500;color:#ffaa00}
+/* TIMER */
+#timer-bar{position:fixed;bottom:80px;left:0;right:0;background:#001a2a;border-top:2px solid var(--accent);padding:12px 20px;display:none;z-index:99;align-items:center;justify-content:space-between}
+#timer-bar.active{display:flex}
+.timer-display{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent)}
+.timer-skip{background:none;border:1px solid var(--border);border-radius:8px;padding:6px 14px;color:var(--text2);font-size:12px;cursor:pointer}
+/* NUTRITION */
+.nutri-header{padding:20px 16px 0}
+.nutri-header h2{font-size:20px;font-weight:700}
+.nutri-date{font-size:13px;color:var(--text2);margin-top:4px}
+.ring-container{display:flex;justify-content:center;padding:24px 0 16px}
+.macro-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 16px}
+.macro-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+.macro-card .val{font-size:22px;font-weight:700;margin-bottom:2px}
+.macro-card .lbl{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em}
+.macro-card .bar{height:4px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden}
+.macro-card .bar-fill{height:100%;border-radius:2px;transition:width 0.4s}
+.meal-form{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+.meal-form h3{font-size:14px;font-weight:600;margin-bottom:12px}
+.form-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:10px}
+.form-field{flex:1}
+.form-field label{display:block;font-size:11px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em}
+.form-field input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 10px;color:var(--text);font-size:14px;font-family:inherit}
+.form-field input:focus{outline:1px solid var(--accent);border-color:var(--accent)}
+.add-btn{background:var(--surface);border:1px solid var(--accent);color:var(--accent);border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.meal-list{margin:0 16px;display:flex;flex-direction:column;gap:8px}
+.meal-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+.meal-item .name{font-size:14px;font-weight:500}
+.meal-item .macros{font-size:12px;color:var(--text2)}
+.meal-item .del{background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;font-size:16px}
+.mps-alert{margin:0 16px 12px;padding:10px 14px;border-radius:10px;font-size:12px;line-height:1.5;border:1px solid}
+.mps-alert.good{background:#001a0d;border-color:#00441f;color:#00cc66}
+.mps-alert.warn{background:#1a1000;border-color:#443000;color:#ffaa00}
+/* CALENDAR */
+.cal-header{padding:20px 16px 0}
+.cal-header h2{font-size:20px;font-weight:700}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+.cal-nav button{background:none;border:1px solid var(--border);border-radius:8px;color:var(--text);padding:6px 14px;cursor:pointer;font-size:13px}
+.cal-nav span{font-size:15px;font-weight:600}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:0 16px}
+.cal-day-name{text-align:center;font-size:10px;color:var(--text3);padding:4px 0;text-transform:uppercase;letter-spacing:0.06em}
+.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:13px;cursor:pointer;position:relative;color:var(--text2)}
+.cal-day.today{border:1px solid var(--accent);color:var(--text)}
+.cal-day.has-workout{background:#001a2a;color:var(--accent)}
+.cal-day.has-nutri{background:#001a0d;color:var(--accent2)}
+.cal-day.has-both{background:linear-gradient(135deg,#001a2a 50%,#001a0d 50%);color:var(--text)}
+.cal-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);position:absolute;bottom:3px}
+.cal-legend{display:flex;gap:16px;padding:12px 16px;flex-wrap:wrap}
+.cal-legend span{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px}
+.cal-legend .sq{width:10px;height:10px;border-radius:3px}
+/* HISTORY LIST */
+.history-list{padding:12px 16px}
+.history-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
+.history-item h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.history-item p{font-size:12px;color:var(--text2);line-height:1.5}
+/* LIBRARY */
+.library-list{padding:12px 16px}
+.lib-card{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden}
+.lib-card-header{padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.lib-card-header h3{font-size:14px;font-weight:600}
+.lib-card-body{display:none;padding:0 16px 14px;font-size:12px;color:var(--text2);line-height:1.7;border-top:1px solid var(--border)}
+.lib-card.open .lib-card-body{display:block}
+.sci-ref{font-size:11px;color:var(--text3);margin-top:8px;font-style:italic}
+/* ALERTS */
+.weekly-vol{background:var(--card);border:1px solid var(--border);border-radius:12px;margin:0 16px 12px;padding:14px 16px}
+.weekly-vol h3{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em}
+.vol-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px}
+.vol-bar-wrap{width:120px;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.vol-bar-fill{height:100%;border-radius:3px}
+.vol-bar-fill.ok{background:var(--accent2)}
+.vol-bar-fill.warn{background:#ffaa00}
+.vol-bar-fill.over{background:var(--danger)}
+/* DELOAD BANNER */
+.deload-banner{margin:0 16px 12px;padding:12px 16px;background:#1a0a00;border:1px solid var(--warn);border-radius:12px;font-size:13px;color:var(--warn);line-height:1.5}
+/* DATA EXPORT */
+.data-section{padding:0 16px 16px}
+.data-btn{width:100%;padding:12px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px;letter-spacing:0.04em}
+.data-btn.export{background:var(--surface);border:1px solid var(--accent);color:var(--accent)}
+.data-btn.import{background:var(--surface);border:1px solid var(--text3);color:var(--text2)}
+.data-btn.danger{background:var(--surface);border:1px solid var(--danger);color:var(--danger)}
+/* TOAST */
+#toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a2a1a;border:1px solid var(--success);color:var(--success);padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- WORKOUT SECTION -->
+  <section id="sec-workout" class="section active">
+    <div id="workout-home">
+      <div class="header">
+        <div class="session-tag"><div class="dot"></div>Protocollo Attivo</div>
+        <h1>Upper Body v3</h1>
+        <p>Quada Edition — Evidence-Based 2025</p>
+      </div>
+      <div id="weekly-volume-display"></div>
+      <div id="deload-banner-area"></div>
+      <div class="session-grid" id="session-cards"></div>
+    </div>
+    <div id="workout-active" style="display:none"></div>
+  </section>
+
+  <!-- NUTRITION SECTION -->
+  <section id="sec-nutrition" class="section">
+    <div class="nutri-header">
+      <h2>Nutrizione</h2>
+      <div class="nutri-date" id="nutri-date"></div>
+    </div>
+    <div class="ring-container">
+      <svg id="nutri-ring" width="160" height="160" viewBox="0 0 160 160">
+        <circle cx="80" cy="80" r="65" fill="none" stroke="#1a1a1a" stroke-width="14"/>
+        <circle id="ring-fill" cx="80" cy="80" r="65" fill="none" stroke="#00d4ff" stroke-width="14"
+          stroke-dasharray="408.41" stroke-dashoffset="408.41" stroke-linecap="round"
+          transform="rotate(-90 80 80)" style="transition:stroke-dashoffset 0.6s ease"/>
+        <text x="80" y="72" text-anchor="middle" fill="#fff" font-size="28" font-weight="700" id="ring-prot-val">0</text>
+        <text x="80" y="90" text-anchor="middle" fill="#a0a0a0" font-size="12">g proteine</text>
+        <text x="80" y="108" text-anchor="middle" fill="#5a5a5a" font-size="11" id="ring-target">/ 120g target</text>
+      </svg>
+    </div>
+    <div class="macro-cards">
+      <div class="macro-card">
+        <div class="val" id="nc-cal">0</div>
+        <div class="lbl">Calorie</div>
+        <div class="bar"><div class="bar-fill" id="nc-cal-bar" style="width:0%;background:var(--warn)"></div></div>
+      </div>
+      <div class="macro-card">
+        <div class="val" id="nc-meals">0</div>
+        <div class="lbl">Pasti oggi</div>
+        <div class="bar"><div class="bar-fill" id="nc-meals-bar" style="width:0%;background:var(--accent2)"></div></div>
+      </div>
+    </div>
+    <div id="mps-alert-area"></div>
+    <div class="meal-form">
+      <h3>Aggiungi Pasto</h3>
+      <div class="form-row">
+        <div class="form-field" style="flex:2">
+          <label>Alimento</label>
+          <input type="text" id="meal-name" placeholder="es. Pollo 150g"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Proteine (g)</label>
+          <input type="number" id="meal-prot" placeholder="0" min="0"/>
+        </div>
+        <div class="form-field">
+          <label>Kcal</label>
+          <input type="number" id="meal-cal" placeholder="0" min="0"/>
+        </div>
+        <button class="add-btn" onclick="addMeal()">+</button>
+      </div>
+    </div>
+    <div class="meal-list" id="meal-list"></div>
+    <div style="height:16px"></div>
+  </section>
+
+  <!-- CALENDAR SECTION -->
+  <section id="sec-calendar" class="section">
+    <div class="cal-header"><h2>Storico</h2></div>
+    <div class="cal-nav">
+      <button onclick="calPrev()">&#8592;</button>
+      <span id="cal-month-label"></span>
+      <button onclick="calNext()">&#8594;</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-legend">
+      <span><div class="sq" style="background:#001a2a;border:1px solid #00d4ff"></div> Workout</span>
+      <span><div class="sq" style="background:#001a0d;border:1px solid #00ff88"></div> Proteine ok</span>
+      <span><div class="sq" style="background:#1a1a00;border:1px solid #888800"></div> Entrambi</span>
+    </div>
+    <div class="history-list" id="history-list"></div>
+    <div class="data-section">
+      <button class="data-btn export" onclick="exportData()">Esporta Backup JSON</button>
+      <button class="data-btn import" onclick="document.getElementById('import-file').click()">Importa Backup</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"/>
+      <button class="data-btn danger" onclick="resetAll()">Reset Tutti i Dati</button>
+    </div>
+  </section>
+
+  <!-- LIBRARY SECTION -->
+  <section id="sec-library" class="section">
+    <div class="header">
+      <h1>Libreria</h1>
+      <p>Riferimenti scientifici del protocollo</p>
+    </div>
+    <div class="library-list" id="library-list"></div>
+  </section>
+</div>
+
+<!-- TIMER BAR -->
+<div id="timer-bar">
+  <div>
+    <div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2px">Recupero</div>
+    <div class="timer-display" id="timer-display">0:00</div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <div id="timer-label" style="font-size:12px;color:var(--text2)"></div>
+    <button class="timer-skip" onclick="skipTimer()">Salta</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <button class="nav-btn active" onclick="showSection('workout',this)">
+    <svg viewBox="0 0 24 24"><path d="M6.5 6.5h11M6.5 17.5h11M4 12h16"/><circle cx="4" cy="12" r="1.5"/><circle cx="20" cy="12" r="1.5"/></svg>
+    Workout
+  </button>
+  <button class="nav-btn" onclick="showSection('nutrition',this)">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/><path d="M12 6v6l4 2"/></svg>
+    Nutrizione
+  </button>
+  <button class="nav-btn" onclick="showSection('calendar',this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Storico
+  </button>
+  <button class="nav-btn" onclick="showSection('library',this)">
+    <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    Libreria
+  </button>
+</nav>
+
+<div id="toast"></div>
+
+<script>
+// ============================================================
+// DATA: Protocol Definition
+// ============================================================
+const PROTOCOL = {
+  G1: {
+    name: "Heavy Push & Pull + Gambe",
+    day: "Martedì",
+    focus: "Petto / Dorso / Deltoide / Gambe",
+    duration: "55–60 min",
+    phases: [
+      {
+        name: "FASE A · Push Primario – Petto",
+        exercises: [
+          {
+            id: "chest_press", name: "Chest Press (Macchina)", sets: 4, reps: "5–8", rest: 180,
+            progression: { type: "double", threshold: 8, increment: 5 },
+            defaultWeight: 35,
+            tech: "Schiena appoggiata, gomiti a 75°. Doppia progressione: +5 kg quando 8 reps × 4. Spingi con i palmi verso il basso, non i pollici. Contrazione 1 sec in chiusura.",
+            sci: "Tensione meccanica massima con carico pesante. Base del V-taper."
+          },
+          {
+            id: "panca_inclinata", name: "Panca Inclinata Manubri 30°", sets: 3, reps: "8–12", rest: 150,
+            progression: { type: "double", threshold: 12, increment: 1 },
+            defaultWeight: 20,
+            tech: "Piedi a terra, 30° (non oltre). Allungamento massimo in basso: senti il petto aprirsi. +1 kg/lato ogni 2 settimane. Abbassa lentamente 3 sec, spingi esplosivo.",
+            sci: "Inclinazione 30° massimizza il fascio clavicolare del pettorale maggiore."
+          },
+          {
+            id: "pec_fly_g1", name: "Pec Fly / Cable Crossover (cavo medio)", sets: 3, reps: "12–15", rest: 90,
+            progression: { type: "double", threshold: 15, increment: 2.5 },
+            defaultWeight: 15,
+            tech: "ROM completo, massimo allungamento. Isometrica 1 sec in chiusura. Immagina di abbracciare un barile. +1 disco ogni 2 sett.",
+            sci: "Isolamento ottimale con tensione costante su tutto il ROM."
+          }
+        ]
+      },
+      {
+        name: "FASE B · Pull Primario – Dorso",
+        exercises: [
+          {
+            id: "lat_machine", name: "Lat Machine (Grip Pronato)", sets: 4, reps: "6–10", rest: 180,
+            progression: { type: "double", threshold: 10, increment: 5 },
+            defaultWeight: 50,
+            tech: "Larghezza spalle. Tira verso la clavicola, gomiti verso le tasche. Non inarcare la schiena, inizia il movimento con le scapole. Doppia progressione: +peso quando 10 × 4.",
+            sci: "Grande dorsale: principale agonista per la larghezza del dorso e il V-taper."
+          },
+          {
+            id: "low_row", name: "Low Row (Macchina)", sets: 3, reps: "6–10", rest: 150,
+            progression: { type: "double", threshold: 10, increment: 5 },
+            defaultWeight: 40,
+            tech: "Tira verso l'ombelico. Scapole che si avvicinano completamente. Non usare il momentum, ritorno lento 3 sec. +5 kg appena domini il range.",
+            sci: "Spessore dorsale: romboidi, trapezio medio, gran dorsale."
+          }
+        ]
+      },
+      {
+        name: "FASE C · Deltoide Laterale – V-Taper",
+        exercises: [
+          {
+            id: "alzate_cavo", name: "Alzate Laterali ai Cavi (cavo basso)", sets: 4, reps: "15–20", rest: 75,
+            progression: { type: "double", threshold: 20, increment: 2.5 },
+            defaultWeight: 5,
+            tech: "Braccio opposto che passa davanti al corpo. Maggior ROM vs manubri. Pollice leggermente verso il basso (pronazione lieve), gomito morbido.",
+            sci: "Il cavo mantiene tensione in tutto il ROM a differenza del manubrio che scarica in basso."
+          },
+          {
+            id: "alzate_myo", name: "Alzate Laterali Manubri (Myo-reps)", sets: 3, reps: "15+4+4+4", rest: 20,
+            progression: { type: "fixed" },
+            defaultWeight: 8,
+            tech: "Serie attivazione 15 reps → pausa 20 sec → 3 mini-serie da 4 reps. Carico fisso. Non oltre 90° e non rimbalzare in basso. Tecnica myo-reps: massimo stimolo, minimo volume.",
+            sci: "Myo-reps: alta densità di stimolo efficace, ideale per deltoide laterale."
+          }
+        ]
+      },
+      {
+        name: "FASE D · Gambe – Quada Leg Circuit",
+        exercises: [
+          {
+            id: "leg_press", name: "Leg Press (45°)", sets: 3, reps: "8–12", rest: 150,
+            progression: { type: "double", threshold: 12, increment: 5 },
+            defaultWeight: 80,
+            tech: "Piedi spalla-larghezza. Scendi a 90°. Non bloccare le ginocchia in estensione, talloni sul piattello. +5 kg ogni 2 sett.",
+            sci: "Quadricipiti, glutei, ischiocrurali. Stimolo efficiente senza compromettere recupero upper."
+          },
+          {
+            id: "leg_ext", name: "Leg Extension (Macchina)", sets: 3, reps: "12–15", rest: 90,
+            progression: { type: "double", threshold: 15, increment: 2.5 },
+            defaultWeight: 30,
+            tech: "Contrazione 1 sec in estensione. Schiena appoggiata, non inarcare. Ritorno lento. +2.5 kg quando 15 × 3.",
+            sci: "Isolamento quadricipiti. Maggiore attivazione del vasto mediale."
+          },
+          {
+            id: "leg_curl", name: "Leg Curl (Macchina)", sets: 2, reps: "10–12", rest: 90,
+            progression: { type: "double", threshold: 12, increment: 2.5 },
+            defaultWeight: 25,
+            tech: "ROM completo. Non sollevare i fianchi, tira con i talloni verso i glutei. +2.5 kg quando 12 × 3.",
+            sci: "Ischiocrurali: bilancio muscolare e riduzione rischio infortuni."
+          },
+          {
+            id: "abduction", name: "Abduction Machine (Glutei)", sets: 2, reps: "15–20", rest: 75,
+            progression: { type: "double", threshold: 20, increment: 2.5 },
+            defaultWeight: 20,
+            tech: "Focus gluteo medio. Carico leggero, tensione costante. Seduto, schiena dritta, non rimbalzare in apertura.",
+            sci: "Gluteo medio: stabilità dell'anca, estetica laterale."
+          }
+        ]
+      }
+    ]
+  },
+  G2: {
+    name: "Arm Day & Forearms",
+    day: "Giovedì",
+    focus: "Bicipiti / Tricipiti / Avambracci / Petto",
+    duration: "55–60 min",
+    phases: [
+      {
+        name: "FASE A · Tricipiti (Prima – Priorità Muscolare)",
+        exercises: [
+          {
+            id: "overhead_ext", name: "Overhead Cable Tricep Ext. (corda)", sets: 4, reps: "8–12", rest: 150,
+            progression: { type: "double", threshold: 12, increment: 2.5 },
+            defaultWeight: 20,
+            tech: "Cavo basso, corda dietro la testa. Overhead = max allungamento long head. Gomiti fissi verso il soffitto, non aprire i gomiti. +1 disco ogni 2 sett.",
+            sci: "Maeo et al. (2023): ipertrofia long head +40% vs pushdown neutro. Il capo lungo origina dalla scapola e si allunga solo in posizione overhead."
+          },
+          {
+            id: "pushdown", name: "Tricep Pushdown ai Cavi (corda)", sets: 3, reps: "10–12", rest: 120,
+            progression: { type: "double", threshold: 12, increment: 2.5 },
+            defaultWeight: 25,
+            tech: "Full ROM, gomito fisso. Picco 1 sec. Non far oscillare il busto, polsi neutri. +1 disco quando 12 × 3.",
+            sci: "Tensione costante su capo laterale e mediale del tricipite."
+          },
+          {
+            id: "skull_crusher", name: "Skull Crusher (EZ Bar)", sets: 3, reps: "10–12", rest: 90,
+            progression: { type: "double", threshold: 12, increment: 2.5 },
+            defaultWeight: 20,
+            tech: "Abbassa DIETRO la testa (non sul naso) per maggiore allungamento. Gomiti stretti, non aprire. Ritorno esplosivo, discesa 3 sec.",
+            sci: "Range di allungamento estremo per massima tensione meccanica sul tricipite."
+          },
+          {
+            id: "dips_assist", name: "Dips Assist / Tricep Kickback (Myo-reps)", sets: 2, reps: "AMRAP / 15+4+4", rest: 90,
+            progression: { type: "fixed" },
+            defaultWeight: 5,
+            tech: "In palestra: Chin/Dip Assist AMRAP. A casa: Kickback Myo-reps 5 kg. Busto parallelo, braccio completamente disteso.",
+            sci: "Finisher ad alta densità per massimizzare il volume tricipiti."
+          }
+        ]
+      },
+      {
+        name: "FASE B · Bicipiti + Brachiale",
+        exercises: [
+          {
+            id: "curl_cavo_bilat", name: "Curl ai Cavi Bassi (corda, bilaterale)", sets: 4, reps: "6–8", rest: 150,
+            progression: { type: "double", threshold: 8, increment: 2.5 },
+            defaultWeight: 15,
+            tech: "Tensione costante. Focus forza. Gomiti fissi ai fianchi, polso supinato in cima. +2.5 kg ogni 2 sett.",
+            sci: "Tensione continua in tutto il ROM a differenza del curl con bilanciere."
+          },
+          {
+            id: "curl_alternato", name: "Curl Manubri Alternato (Supinazione)", sets: 3, reps: "10–12", rest: 120,
+            progression: { type: "week_progression", schedule: [[8,12],[8,14],[9,10],[9,12],[10,10]] },
+            defaultWeight: 8,
+            tech: "Supina il polso durante la salita (pollice verso l'esterno). Progressione programmata: sett.1-2: 8kg×12 · sett.3-4: 8kg×14 · sett.5: 9kg×10.",
+            sci: "La supinazione massima in cima aumenta l'attivazione del bicipite brachiale."
+          },
+          {
+            id: "curl_singolo", name: "Curl al Cavo Basso (singolo braccio)", sets: 3, reps: "12–15", rest: 90,
+            progression: { type: "double", threshold: 15, increment: 2.5 },
+            defaultWeight: 10,
+            tech: "Massimo allungamento in basso. Braccio leggermente avanti al busto per allungamento completo. Tensione costante vs manubri.",
+            sci: "Allungamento massimale per ipertrofia brachiale in range estremo."
+          },
+          {
+            id: "hammer_curl", name: "Curl a Martello (Hammer) – Brachiale", sets: 3, reps: "10–12", rest: 90,
+            progression: { type: "double", threshold: 12, increment: 2.5 },
+            defaultWeight: 12,
+            tech: "Grip neutro = recluta brachiale e brachioradiale. Non ruotare il polso, manubrio perpendicolare al pavimento.",
+            sci: "Naito et al. (2005): il brachiale è il flessore più potente in presa neutra. Spinge su il bicipite aumentando la massa visiva del braccio."
+          },
+          {
+            id: "curl_concentrato", name: "Curl Concentrato (seated peak)", sets: 2, reps: "12–15", rest: 75,
+            progression: { type: "double", threshold: 15, increment: 1 },
+            defaultWeight: 10,
+            tech: "Dropset ultima serie: –20% carico dopo failure. Picco 2 sec. Gomito sul ginocchio interno, squeeze massimo in cima.",
+            sci: "Picco di contrazione massima per connessione mente-muscolo (Schoenfeld & Contreras, 2016)."
+          }
+        ]
+      },
+      {
+        name: "FASE C · Avambracci & Flessori Polso",
+        exercises: [
+          {
+            id: "wrist_curl", name: "Wrist Curl (Flessori) su Panca", sets: 3, reps: "15–20", rest: 60,
+            progression: { type: "double", threshold: 20, increment: 1 },
+            defaultWeight: 6,
+            tech: "ROM completo. Polsi a sbalzo sul bordo panca, dita che si aprono in basso. Manubri leggeri.",
+            sci: "Flessori del polso: grip strength e dimensione avambraccio anteriore."
+          },
+          {
+            id: "reverse_wrist", name: "Reverse Wrist Curl (Estensori)", sets: 3, reps: "15–20", rest: 60,
+            progression: { type: "double", threshold: 20, increment: 1 },
+            defaultWeight: 5,
+            tech: "Stesso movimento, dorso della mano verso l'alto. Previene squilibri. Essenziale con carichi curl crescenti.",
+            sci: "Bilancio muscolare avambraccio per prevenire epicondilite laterale."
+          },
+          {
+            id: "farmers_walk", name: "Farmer's Walk / Dead Hang", sets: 2, reps: "30 sec", rest: 60,
+            progression: { type: "fixed" },
+            defaultWeight: 20,
+            tech: "Farmer's: 2 manubri pesanti × 30 sec. Dead Hang: sbarra × 30–45 sec. Spalle abbassate (non alzate), presa a piena mano.",
+            sci: "Grip strength funzionale. Transfer diretto su tutti gli esercizi di trazione."
+          }
+        ]
+      },
+      {
+        name: "FASE D · Richiamo Petto (Isolamento)",
+        exercises: [
+          {
+            id: "pec_fly_g2", name: "Pec Fly / Pec Deck (Macchina)", sets: 3, reps: "12–15", rest: 90,
+            progression: { type: "double", threshold: 15, increment: 2.5 },
+            defaultWeight: 30,
+            tech: "Massimo allungamento. Isometrica 1 sec in chiusura. Carico moderato. Gomiti morbidi, non oltre il piano spalle in apertura.",
+            sci: "Tra i migliori per attivazione EMG del petto (Nippard, 2024)."
+          },
+          {
+            id: "diamond_pushup", name: "Push-Up Diamante / Archer [CASA]", sets: 2, reps: "AMRAP", rest: 75,
+            progression: { type: "fixed" },
+            defaultWeight: 0,
+            tech: "Finisher metabolico. Myo-reps: attivazione → cluster 4-4-4. Indici e pollici a forma di diamante, tricipiti primari.",
+            sci: "Finisher bodyweight per pump e densità di volume."
+          }
+        ]
+      }
+    ]
+  },
+  G3: {
+    name: "Shoulder, Upper Back & Chest Special",
+    day: "Sabato",
+    focus: "Deltoidi 3D / Trapezio / Dorso / Petto / Core",
+    duration: "55–60 min",
+    phases: [
+      {
+        name: "FASE A · Shoulder Press – Forza Base Deltoidi",
+        exercises: [
+          {
+            id: "shoulder_press_mac", name: "Shoulder Press (Macchina)", sets: 4, reps: "5–6", rest: 240,
+            progression: { type: "double", threshold: 6, increment: 5 },
+            defaultWeight: 25,
+            tech: "Carico iniziale: 25 kg. Doppia progressione: +5 kg ogni 2 sett. Target 40–50 kg in 12 sett. Schiena appoggiata, non inarcare la lombare, spingi verticale.",
+            sci: "Esercizio fondamentale per la forza base deltoidea. Obiettivo 12 settimane: 40–50 kg."
+          },
+          {
+            id: "shoulder_press_man", name: "Shoulder Press Manubri (seduto)", sets: 3, reps: "8–10", rest: 150,
+            progression: { type: "double", threshold: 10, increment: 2 },
+            defaultWeight: 16,
+            tech: "Maggiore ROM vs macchina. Manubri al livello delle orecchie, non abbassare sotto le spalle. Progressione indipendente per asimmetrie.",
+            sci: "ROM aumentato attiva maggiore lunghezza di fascicolo muscolare."
+          },
+          {
+            id: "arnold_press", name: "Arnold Press", sets: 2, reps: "10–12", rest: 120,
+            progression: { type: "double", threshold: 12, increment: 2 },
+            defaultWeight: 12,
+            tech: "Rotazione completa: palmi verso di sé in basso, verso avanti in cima. Movimento fluido e controllato, non velocizzare la rotazione.",
+            sci: "Attivazione tridimensionale del deltoide incluse le fibre anteriori e laterali."
+          }
+        ]
+      },
+      {
+        name: "FASE B · Deltoide Laterale & Posteriore – V-Taper 3D",
+        exercises: [
+          {
+            id: "alzate_macchina", name: "Alzate Laterali Macchina (seduto)", sets: 4, reps: "12–15", rest: 90,
+            progression: { type: "double", threshold: 15, increment: 2.5 },
+            defaultWeight: 10,
+            tech: "Tensione costante tutto il ROM. Seduto stabilizza il corpo, non usare il momentum del busto. +1 disco ogni 2 sett. quando 15 × 4.",
+            sci: "Il seduto elimina il cheating con il tronco, massimizzando lo stimolo sul deltoide laterale."
+          },
+          {
+            id: "face_pull", name: "Face Pull ai Cavi (corda, alto)", sets: 3, reps: "15–20", rest: 75,
+            progression: { type: "double", threshold: 20, increment: 2.5 },
+            defaultWeight: 15,
+            tech: "Tira verso il viso, gomiti alti, finire con rotazione esterna. Fondamentale per salute della spalla. Non tirare verso il collo. Pollici che puntano all'indietro alla fine.",
+            sci: "Rinforzo cuffia dei rotatori e deltoide posteriore. Previene squilibri posturali da eccesso push."
+          },
+          {
+            id: "real_delt", name: "Real Delt (Macchina)", sets: 3, reps: "15–20", rest: 75,
+            progression: { type: "double", threshold: 20, increment: 2.5 },
+            defaultWeight: 15,
+            tech: "Macchina dedicata deltoide posteriore. Regola il pad all'altezza giusta. Inizia il movimento aprendo le scapole, non con i tricipiti.",
+            sci: "Deltoide posteriore: fondamentale per la rotondità 3D della spalla e la postura."
+          }
+        ]
+      },
+      {
+        name: "FASE C · Trapezio & Upper Back – Spessore Dorsale",
+        exercises: [
+          {
+            id: "shrug", name: "Shrug Manubri (alzate spalle pesanti)", sets: 3, reps: "8–12", rest: 120,
+            progression: { type: "double", threshold: 12, increment: 2.5 },
+            defaultWeight: 30,
+            tech: "Fino a 40 kg. Trattenere 1 sec in alto. No rotazione spalle. Movimento VERTICALE, non circolare. +2.5 kg ogni sett.",
+            sci: "Trapezio superiore: elevazione scapolare e spessore del collo/spalle."
+          },
+          {
+            id: "upper_back_mac", name: "Upper Back (Macchina)", sets: 3, reps: "8–10", rest: 150,
+            progression: { type: "double", threshold: 10, increment: 5 },
+            defaultWeight: 35,
+            tech: "Romboidi e trapezio medio. Gomiti alti per massimo ROM. Ritira le scapole prima di tirare con le braccia.",
+            sci: "Spessore dorsale medio-alto. Fondamentale per la postura e l'aspetto del back."
+          },
+          {
+            id: "pulley_basso", name: "Pulley Basso (seduto, presa stretta)", sets: 3, reps: "10–12", rest: 90,
+            progression: { type: "double", threshold: 12, increment: 5 },
+            defaultWeight: 40,
+            tech: "Ritorno lento 3 sec. Scapole che si avvicinano completamente. Focus trapezio inferiore, tira verso l'ombelico.",
+            sci: "Trapezio inferiore e gran dorsale: spessore basso del dorso."
+          }
+        ]
+      },
+      {
+        name: "FASE D · Petto – Richiamo Finale (Cable Chest)",
+        exercises: [
+          {
+            id: "cable_crossover", name: "Cable Crossover Low-to-High", sets: 3, reps: "12–15", rest: 75,
+            progression: { type: "double", threshold: 15, increment: 2.5 },
+            defaultWeight: 10,
+            tech: "Cavo basso. Bias petto superiore (fascio clavicolare). Mani che si incrociano in alto. Tensione costante, massimo allungamento in eccentrica.",
+            sci: "Damas et al. (2016): frequenza 2× ottimale per MPS. Richiamo leggero per consolidare lo stimolo di G1."
+          },
+          {
+            id: "pec_fly_g3", name: "Pec Fly (Macchina o Cavo Medio)", sets: 3, reps: "12–15", rest: 75,
+            progression: { type: "double", threshold: 15, increment: 2.5 },
+            defaultWeight: 25,
+            tech: "Isolamento petto medio. Isometrica 1 sec. Carico leggero–moderato. Tra i migliori per attivazione EMG del petto (Nippard, 2024).",
+            sci: "Frequenza ottimale 2×/settimana per massimizzare la sintesi proteica muscolare del petto."
+          }
+        ]
+      },
+      {
+        name: "FASE E · Core Strength",
+        exercises: [
+          {
+            id: "cable_crunch", name: "Cable Crunch (in ginocchio, corda)", sets: 3, reps: "12–15", rest: 90,
+            progression: { type: "weekly_increment", increment: 2.5 },
+            defaultWeight: 20,
+            tech: "Contrarre verso le cosce (non verso il basso). +2.5 kg ogni settimana. Tieni i fianchi fermi, il movimento parte dalla colonna. Non usare inerzia.",
+            sci: "Retto dell'addome: stabilità per Shoulder Press pesante. Progressione lineare sistematica."
+          },
+          {
+            id: "hollow_body", name: "Hollow Body Hold o Plank Dinamico", sets: 2, reps: "30–45 sec", rest: 60,
+            progression: { type: "fixed" },
+            defaultWeight: 0,
+            tech: "Core statico + stabilità lombare. Hollow body: lombare incollata al pavimento, gambe e braccia estese. Preparazione per Shoulder Press pesante.",
+            sci: "Stabilità lombare per trasferimento di forza ottimale negli esercizi overhead."
+          }
+        ]
+      }
+    ]
+  }
+};
+
+const LIBRARY_ENTRIES = [
+  {
+    title: "Tricipiti: Il Long Head e la Posizione Overhead",
+    body: "Il capo lungo del tricipite origina dalla scapola (tuberosità infraglenoide). Questo significa che si allunga completamente SOLO quando il braccio è in flessione sopra la testa. Maeo et al. (2023) hanno dimostrato che l'Overhead Extension produce +40% di ipertrofia del long head rispetto al pushdown neutro. Per questo G2 inizia con l'Overhead Cable Extension: è il movimento più importante per la massa totale del tricipite.",
+    ref: "Maeo S, Wu Y, Huang M et al. (2023). Triceps brachii hypertrophy is substantially greater after elbow extension training performed in the overhead versus neutral arm position. Eur J Sport Sci, 23(7): 1240–1250."
+  },
+  {
+    title: "Il Brachiale: Il Muscolo Segreto del Braccio",
+    body: "Il brachiale si trova sotto il bicipite brachiale ed è il flessore del gomito più potente quando l'avambraccio è in posizione neutra (hammer grip). Non è visibile frontalmente, ma spinge letteralmente il bicipite verso l'alto creando più massa visiva. L'Hammer Curl è l'esercizio più efficace per stimolarlo. Tecnica critica: non ruotare il polso, mantenere il manubrio perpendicolare al pavimento.",
+    ref: "Naito A et al. (2005). Electromyographic study of the elbow flexors and extensors in a motion of forearm flexion and extension. Anat Sci Int, 80(4): 196–202."
+  },
+  {
+    title: "MEV, MAV e MRV: Il Framework del Volume",
+    body: "MEV (Minimum Effective Volume): il minimo stimolo per innescare adattamenti. MAV (Maximum Adaptive Volume): il range ottimale dove avvengono i massimi guadagni. MRV (Maximum Recoverable Volume): il massimo volume recuperabile. Superare l'MRV porta al sovrallenamento. Il protocollo v3 opera nel MAV per tutti i gruppi muscolari prioritari.",
+    ref: "Israetel M, Hoffmann J, Case C. (2019). Scientific Principles of Hypertrophy Training. Renaissance Periodization Press."
+  },
+  {
+    title: "Doppia Progressione (Double Progression)",
+    body: "Tecnica in cui si aumentano prima le ripetizioni fino al limite superiore del range su TUTTE le serie, poi si aumenta il carico. Esempio Chest Press (5-8 reps): se completi 8/8/8/8, la sessione successiva sale di +5 kg. Se fai 8/8/7/6, mantieni il carico e cerchi di migliorare le reps. Questa metodologia garantisce progressione continua senza sovraccarico prematuro.",
+    ref: "Schoenfeld BJ. (2010). The mechanisms of muscle hypertrophy and their application to resistance training. J Strength Cond Res, 24(10): 2857–2872."
+  },
+  {
+    title: "Frequenza di Allenamento e MPS",
+    body: "Il protocollo allena ogni gruppo muscolare 2 volte a settimana: petto in G1+G3, dorso in G1+G3, deltoidi in G1+G3, braccia in G1+G2. Damas et al. (2016) mostrano che la frequenza 2× ottimizza la sintesi proteica muscolare (MPS) distribuendo il segnale anabolico nel tempo. Una sessione sola a settimana per gruppo muscolare è sub-ottimale per l'ipertrofia.",
+    ref: "Damas F et al. (2016). A review of resistance training-induced changes in skeletal muscle protein synthesis and their contribution to hypertrophy. Sports Med, 45(6): 801–807."
+  },
+  {
+    title: "Nutrizione: Proteine e Distribuzione MPS",
+    body: "Target: 1.8–2.2 g/kg/die = 108–132 g per 60 kg (Morton et al., 2018). Distribuire in 4–5 pasti da almeno 25–30 g ognuno per mantenere elevata la MPS durante la giornata. Un singolo pasto da 60 g non equivale a 2 pasti da 30 g per la MPS. Surplus calorico: +200–300 kcal/die sopra il TDEE. Carboidrati peri-workout per performance ottimale.",
+    ref: "Morton RW et al. (2018). A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength. Br J Sports Med, 52: 376–384."
+  },
+  {
+    title: "Deload e Super-Compensazione",
+    body: "Ogni 4–6 settimane: ridurre il volume del 40–50% per 1 settimana. Il deload non è un'opzione, è parte della programmazione. Permette il ripristino delle riserve di glicogeno muscolare, la riduzione del sistema nervoso centrale (SNC) affaticato e il super-compenso degli adattamenti. Meeusen et al. (2013) dimostrano che l'overreaching funzionale (sovraccarico controllato + deload) produce i maggiori guadagni a lungo termine.",
+    ref: "Meeusen R et al. (2013). Prevention, diagnosis and treatment of the overtraining syndrome. Eur J Sport Sci, 13(1): 1–24."
+  },
+  {
+    title: "Connessione Mente-Muscolo",
+    body: "Schoenfeld & Contreras (2016) dimostrano che la focalizzazione attentiva sul muscolo target durante l'esecuzione aumenta l'attivazione EMG del 20–30%. Questo significa che pensare attivamente al petto durante la Chest Press, o al deltoide laterale durante le Alzate, produce uno stimolo ipertrofico misurabilmente superiore a parità di carico. Tecnica pratica: prima di ogni serie, tocca il muscolo target e immagina la contrazione.",
+    ref: "Schoenfeld BJ, Contreras B. (2016). Attentional focus for maximizing muscle development: The mind-muscle connection. Strength Cond J, 38(1): 27–29."
+  }
+];
+
+// ============================================================
+// STORAGE MANAGER
+// ============================================================
+const DB = {
+  key: 'ubhv3_data',
+  load() {
+    try {
+      const raw = localStorage.getItem(this.key);
+      return raw ? JSON.parse(raw) : this.defaults();
+    } catch(e) { return this.defaults(); }
+  },
+  save(data) {
+    try { localStorage.setItem(this.key, JSON.stringify(data)); return true; }
+    catch(e) { console.error('Storage error:', e); return false; }
+  },
+  defaults() {
+    return { workouts: [], nutrition: {}, currentWeek: 1, startDate: new Date().toISOString() };
+  }
+};
+
+let appData = DB.load();
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showSection(name, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name === 'workout') renderWorkoutHome();
+  if(name === 'nutrition') renderNutrition();
+  if(name === 'calendar') renderCalendar();
+  if(name === 'library') renderLibrary();
+}
+
+// ============================================================
+// WORKOUT HOME
+// ============================================================
+function renderWorkoutHome() {
+  document.getElementById('workout-home').style.display = '';
+  document.getElementById('workout-active').style.display = 'none';
+  renderWeeklyVolume();
+  renderSessionCards();
+}
+
+function renderWeeklyVolume() {
+  const area = document.getElementById('weekly-volume-display');
+  const thisWeekWorkouts = getThisWeekWorkouts();
+  const muscles = { 'Petto': {prog:14,mav:[12,16]}, 'Dorso': {prog:16,mav:[14,18]}, 'Deltoide Lat.': {prog:18,mav:[16,22]}, 'Bicipiti': {prog:16,mav:[14,20]}, 'Tricipiti': {prog:12,mav:[10,14]} };
+
+  let html = `<div class="weekly-vol"><h3>Volume Settimanale</h3>`;
+  for(const [m,d] of Object.entries(muscles)) {
+    const pct = Math.min(100, (d.prog/d.mav[1])*100);
+    const cls = pct > 90 ? 'over' : pct > 60 ? 'ok' : 'warn';
+    html += `<div class="vol-row"><span>${m}</span><div class="vol-bar-wrap"><div class="vol-bar-fill ${cls}" style="width:${pct}%"></div></div><span style="font-size:11px;color:var(--text3)">${d.prog}/${d.mav[1]}s</span></div>`;
+  }
+  html += `<div style="font-size:11px;color:var(--text3);margin-top:8px">${thisWeekWorkouts.length}/3 sessioni completate questa settimana</div></div>`;
+  area.innerHTML = html;
+
+  // Deload check
+  const weeks = getCurrentProgramWeek();
+  const deloadArea = document.getElementById('deload-banner-area');
+  if(weeks > 0 && weeks % 5 === 0) {
+    deloadArea.innerHTML = `<div class="deload-banner">Settimana ${weeks}: Deload consigliato. Riduci il volume del 40–50% per favorire il super-compenso (Meeusen et al., 2013).</div>`;
+  } else {
+    deloadArea.innerHTML = '';
+  }
+}
+
+function getThisWeekWorkouts() {
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay());
+  return appData.workouts.filter(w => new Date(w.date) >= weekStart);
+}
+
+function getCurrentProgramWeek() {
+  if(!appData.startDate) return 1;
+  const ms = Date.now() - new Date(appData.startDate).getTime();
+  return Math.floor(ms / (7*24*3600*1000)) + 1;
+}
+
+function renderSessionCards() {
+  const container = document.getElementById('session-cards');
+  const sessions = ['G1','G2','G3'];
+  container.innerHTML = sessions.map(gid => {
+    const s = PROTOCOL[gid];
+    const lastDone = appData.workouts.filter(w => w.session === gid).sort((a,b) => new Date(b.date)-new Date(a.date))[0];
+    const lastDate = lastDone ? formatDate(lastDone.date) : 'Mai completato';
+    return `
+      <div class="session-card" onclick="startWorkout('${gid}')">
+        <div class="session-tag"><div class="dot"></div>${gid} · ${s.day}</div>
+        <h2>${s.name}</h2>
+        <div class="meta">
+          <span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            ${s.duration}
+          </span>
+          <span>${s.focus}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px">Ultima: ${lastDate}</div>
+      </div>`;
+  }).join('');
+}
+
+// ============================================================
+// ACTIVE WORKOUT
+// ============================================================
+let activeSession = null;
+let activeSetData = {};
+
+function startWorkout(gid) {
+  activeSession = gid;
+  activeSetData = {};
+  document.getElementById('workout-home').style.display = 'none';
+  document.getElementById('workout-active').style.display = '';
+  renderActiveWorkout(gid);
+  requestWakeLock();
+}
+
+function renderActiveWorkout(gid) {
+  const s = PROTOCOL[gid];
+  const container = document.getElementById('workout-active');
+  let html = `
+    <div class="workout-header">
+      <button class="back" onclick="finishWorkout()">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Torna alla Home
+      </button>
+      <div class="phase-label">${gid} · ${s.day}</div>
+      <h2>${s.name}</h2>
+    </div>`;
+
+  s.phases.forEach((phase, pi) => {
+    html += `<div style="padding:12px 16px 0"><div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent2);margin-bottom:4px">${phase.name}</div></div>`;
+    phase.exercises.forEach((ex, ei) => {
+      const suggestion = getSuggestion(gid, ex);
+      const suggBadge = suggestion.increased
+        ? `<div class="progress-badge up">+${suggestion.increment}kg suggerito</div>`
+        : `<div class="progress-badge same">Mantieni: ${suggestion.weight}kg</div>`;
+
+      html += `
+        <div class="exercise-card" id="excard-${ex.id}">
+          <div class="exercise-header" onclick="toggleExercise('${ex.id}')">
+            <div>
+              <h3>${ex.name}</h3>
+              <div class="exercise-meta">${ex.sets} serie · ${ex.reps} reps · Recupero: ${formatRest(ex.rest)}</div>
+            </div>
+            <svg class="exercise-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="exercise-body">
+            <div class="tech-note"><strong>TECH:</strong> ${ex.tech}</div>
+            ${suggBadge}
+            <div class="sets-area" id="sets-${ex.id}">
+              ${renderSets(ex, suggestion)}
+            </div>
+            <div style="padding:0 16px 12px">
+              <button class="log-btn" id="logbtn-${ex.id}" onclick="logExercise('${gid}','${ex.id}')">Log Esercizio</button>
+            </div>
+          </div>
+        </div>`;
+    });
+  });
+
+  html += `
+    <div style="padding:20px 16px">
+      <button onclick="completeWorkout('${gid}')" style="width:100%;padding:16px;border-radius:14px;background:var(--accent2);color:#000;font-size:15px;font-weight:700;border:none;cursor:pointer;letter-spacing:0.04em">Completa Sessione ${gid}</button>
+    </div>`;
+
+  container.innerHTML = html;
+  // Auto-open first exercise
+  const firstEx = s.phases[0].exercises[0];
+  toggleExercise(firstEx.id);
+}
+
+function renderSets(ex, suggestion) {
+  let html = '';
+  for(let i = 0; i < ex.sets; i++) {
+    const key = `${ex.id}_${i}`;
+    if(!activeSetData[key]) activeSetData[key] = { weight: suggestion.weight, reps: 0 };
+    html += `
+      <div class="set-row" id="setrow-${ex.id}-${i}">
+        <div class="set-num">${i+1}</div>
+        <div style="flex:1">
+          <input class="set-input" type="number" id="w-${ex.id}-${i}" value="${suggestion.weight}" min="0" step="0.5" placeholder="kg"/>
+          <div class="set-label">kg</div>
+        </div>
+        <div style="flex:1">
+          <input class="set-input" type="number" id="r-${ex.id}-${i}" value="" min="0" placeholder="reps"/>
+          <div class="set-label">reps</div>
+        </div>
+        <button onclick="markSet('${ex.id}',${i})" style="background:none;border:1px solid var(--border);border-radius:8px;width:36px;height:36px;color:var(--text3);cursor:pointer;font-size:18px">✓</button>
+      </div>`;
+  }
+  return html;
+}
+
+function markSet(exId, setIdx) {
+  const row = document.getElementById(`setrow-${exId}-${setIdx}`);
+  const wVal = parseFloat(document.getElementById(`w-${exId}-${setIdx}`).value) || 0;
+  const rVal = parseInt(document.getElementById(`r-${exId}-${setIdx}`).value) || 0;
+  activeSetData[`${exId}_${setIdx}`] = { weight: wVal, reps: rVal, done: true };
+  row.classList.add('done');
+  // Start timer
+  const ex = findExercise(exId);
+  if(ex) startTimer(ex.rest, ex.name);
+}
+
+function logExercise(gid, exId) {
+  const ex = findExercise(exId);
+  if(!ex) return;
+  const sets = [];
+  for(let i = 0; i < ex.sets; i++) {
+    const w = parseFloat(document.getElementById(`w-${exId}-${i}`)?.value) || 0;
+    const r = parseInt(document.getElementById(`r-${exId}-${i}`)?.value) || 0;
+    sets.push({ weight: w, reps: r });
+  }
+  // Save to session buffer
+  if(!appData._currentSession) appData._currentSession = { session: gid, exercises: {} };
+  appData._currentSession.exercises[exId] = sets;
+  DB.save(appData);
+  const btn = document.getElementById(`logbtn-${exId}`);
+  btn.textContent = 'Salvato';
+  btn.classList.add('done');
+  showToast('Serie salvate');
+}
+
+function toggleExercise(id) {
+  const card = document.getElementById(`excard-${id}`);
+  card.classList.toggle('open');
+}
+
+function getSuggestion(gid, ex) {
+  const prev = appData.workouts.filter(w => w.session === gid && w.exercises[ex.id]).sort((a,b) => new Date(b.date)-new Date(a.date))[0];
+  if(!prev) return { weight: ex.defaultWeight, increased: false, increment: ex.progression.increment || 0 };
+
+  const prevSets = prev.exercises[ex.id];
+  const prog = ex.progression;
+  let weight = prevSets[0]?.weight || ex.defaultWeight;
+
+  if(prog.type === 'double') {
+    const allHit = prevSets.every(s => s.reps >= prog.threshold);
+    if(allHit) {
+      return { weight: weight + (prog.increment || 2.5), increased: true, increment: prog.increment || 2.5 };
+    }
+  } else if(prog.type === 'weekly_increment') {
+    const weeksSinceStart = getCurrentProgramWeek();
+    weight = ex.defaultWeight + (prog.increment * (weeksSinceStart - 1));
+  }
+  return { weight, increased: false, increment: prog.increment || 0 };
+}
+
+function findExercise(exId) {
+  for(const [gid, session] of Object.entries(PROTOCOL)) {
+    for(const phase of session.phases) {
+      for(const ex of phase.exercises) {
+        if(ex.id === exId) return ex;
+      }
+    }
+  }
+  return null;
+}
+
+function completeWorkout(gid) {
+  if(!confirm(`Completare la sessione ${gid}?`)) return;
+  const session = appData._currentSession || { session: gid, exercises: {} };
+  // Collect any un-logged exercises
+  PROTOCOL[gid].phases.forEach(phase => {
+    phase.exercises.forEach(ex => {
+      if(!session.exercises[ex.id]) {
+        const sets = [];
+        for(let i = 0; i < ex.sets; i++) {
+          const w = parseFloat(document.getElementById(`w-${ex.id}-${i}`)?.value) || 0;
+          const r = parseInt(document.getElementById(`r-${ex.id}-${i}`)?.value) || 0;
+          sets.push({ weight: w, reps: r });
+        }
+        session.exercises[ex.id] = sets;
+      }
+    });
+  });
+
+  appData.workouts.push({
+    id: Date.now().toString(),
+    date: new Date().toISOString(),
+    session: gid,
+    exercises: session.exercises
+  });
+  delete appData._currentSession;
+  DB.save(appData);
+  releaseWakeLock();
+  stopTimer();
+  showToast('Sessione completata!');
+  renderWorkoutHome();
+}
+
+function finishWorkout() {
+  if(confirm('Tornare alla home? I dati non salvati andranno persi.')) {
+    delete appData._currentSession;
+    releaseWakeLock();
+    stopTimer();
+    renderWorkoutHome();
+  }
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+let timerInterval = null;
+let timerEndTime = null;
+
+function startTimer(seconds, label) {
+  stopTimer();
+  timerEndTime = Date.now() + seconds * 1000;
+  const bar = document.getElementById('timer-bar');
+  document.getElementById('timer-label').textContent = label || '';
+  bar.classList.add('active');
+  timerInterval = setInterval(updateTimer, 500);
+  updateTimer();
+
+  document.addEventListener('visibilitychange', handleVisibility);
+}
+
+function handleVisibility() {
+  if(!document.hidden && timerEndTime) updateTimer();
+}
+
+function updateTimer() {
+  const remaining = Math.max(0, Math.ceil((timerEndTime - Date.now()) / 1000));
+  const m = Math.floor(remaining/60);
+  const s = remaining % 60;
+  document.getElementById('timer-display').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  if(remaining <= 0) stopTimer();
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  timerEndTime = null;
+  document.getElementById('timer-bar').classList.remove('active');
+  document.removeEventListener('visibilitychange', handleVisibility);
+}
+
+function skipTimer() { stopTimer(); }
+
+function formatRest(sec) {
+  if(sec >= 60) return `${Math.floor(sec/60)} min ${sec%60 ? sec%60+'s' : ''}`;
+  return `${sec}s`;
+}
+
+// ============================================================
+// WAKE LOCK
+// ============================================================
+let wakeLock = null;
+async function requestWakeLock() {
+  if(!('wakeLock' in navigator)) return;
+  try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+}
+function releaseWakeLock() {
+  if(wakeLock) { wakeLock.release(); wakeLock = null; }
+}
+
+// ============================================================
+// NUTRITION
+// ============================================================
+const PROT_MIN = 108, PROT_MAX = 132, PROT_TARGET = 120, CAL_TARGET = 2300;
+
+function getTodayKey() { return new Date().toISOString().slice(0,10); }
+
+function renderNutrition() {
+  const today = getTodayKey();
+  const dayData = appData.nutrition[today] || { meals: [] };
+  const totalProt = dayData.meals.reduce((s,m) => s + (m.prot||0), 0);
+  const totalCal = dayData.meals.reduce((s,m) => s + (m.cal||0), 0);
+
+  document.getElementById('nutri-date').textContent = new Date().toLocaleDateString('it-IT', {weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('ring-prot-val').textContent = Math.round(totalProt);
+  document.getElementById('ring-target').textContent = `/ ${PROT_TARGET}g target`;
+
+  // Ring
+  const pct = Math.min(1, totalProt/PROT_TARGET);
+  const circumference = 408.41;
+  const offset = circumference * (1 - pct);
+  const ring = document.getElementById('ring-fill');
+  ring.setAttribute('stroke-dashoffset', offset);
+  ring.setAttribute('stroke', totalProt < PROT_MIN ? '#ff6b35' : totalProt <= PROT_MAX ? '#00d4ff' : '#00ff88');
+
+  document.getElementById('nc-cal').textContent = Math.round(totalCal);
+  document.getElementById('nc-cal-bar').style.width = Math.min(100, (totalCal/CAL_TARGET)*100)+'%';
+  document.getElementById('nc-meals').textContent = dayData.meals.length;
+  document.getElementById('nc-meals-bar').style.width = Math.min(100, (dayData.meals.length/5)*100)+'%';
+
+  // MPS alert
+  const mpsArea = document.getElementById('mps-alert-area');
+  const bigMeals = dayData.meals.filter(m => m.prot >= 25).length;
+  if(dayData.meals.length > 0) {
+    if(bigMeals >= 4) {
+      mpsArea.innerHTML = `<div class="mps-alert good">Distribuzione MPS ottimale: ${bigMeals} pasti da 25g+. Sintesi proteica massimizzata.</div>`;
+    } else {
+      mpsArea.innerHTML = `<div class="mps-alert warn">Distribuzione MPS: ${bigMeals}/4 pasti da 25g+. Distribuisci le proteine in 4–5 pasti per massimizzare la MPS (Helms et al., 2014).</div>`;
+    }
+  } else { mpsArea.innerHTML = ''; }
+
+  // Meal list
+  const ml = document.getElementById('meal-list');
+  ml.innerHTML = dayData.meals.map((m, i) => `
+    <div class="meal-item">
+      <div>
+        <div class="name">${m.name || 'Pasto'}</div>
+        <div class="macros">${m.prot}g prot · ${m.cal} kcal</div>
+      </div>
+      <button class="del" onclick="deleteMeal(${i})">×</button>
+    </div>`).join('');
+}
+
+function addMeal() {
+  const name = document.getElementById('meal-name').value || 'Pasto';
+  const prot = parseFloat(document.getElementById('meal-prot').value) || 0;
+  const cal = parseFloat(document.getElementById('meal-cal').value) || 0;
+  const today = getTodayKey();
+  if(!appData.nutrition[today]) appData.nutrition[today] = { meals: [] };
+  appData.nutrition[today].meals.push({ name, prot, cal, time: new Date().toISOString() });
+  DB.save(appData);
+  document.getElementById('meal-name').value = '';
+  document.getElementById('meal-prot').value = '';
+  document.getElementById('meal-cal').value = '';
+  renderNutrition();
+  showToast('Pasto aggiunto');
+}
+
+function deleteMeal(idx) {
+  const today = getTodayKey();
+  appData.nutrition[today].meals.splice(idx, 1);
+  DB.save(appData);
+  renderNutrition();
+}
+
+// ============================================================
+// CALENDAR
+// ============================================================
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+function renderCalendar() {
+  const monthNames = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+  document.getElementById('cal-month-label').textContent = `${monthNames[calMonth]} ${calYear}`;
+
+  const grid = document.getElementById('cal-grid');
+  const dayNames = ['Lu','Ma','Me','Gi','Ve','Sa','Do'];
+  let html = dayNames.map(d => `<div class="cal-day-name">${d}</div>`).join('');
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const offset = (firstDay + 6) % 7;
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const today = new Date();
+
+  for(let i = 0; i < offset; i++) html += `<div></div>`;
+
+  for(let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
+    const hasWorkout = appData.workouts.some(w => w.date.startsWith(dateStr));
+    const dayNutri = appData.nutrition[dateStr];
+    const totalProt = dayNutri ? dayNutri.meals.reduce((s,m) => s+(m.prot||0),0) : 0;
+    const hasNutri = totalProt >= PROT_MIN;
+
+    let cls = 'cal-day';
+    if(isToday) cls += ' today';
+    if(hasWorkout && hasNutri) cls += ' has-both';
+    else if(hasWorkout) cls += ' has-workout';
+    else if(hasNutri) cls += ' has-nutri';
+
+    html += `<div class="${cls}">${d}</div>`;
+  }
+  grid.innerHTML = html;
+
+  // History
+  const histList = document.getElementById('history-list');
+  const recentWorkouts = [...appData.workouts].sort((a,b) => new Date(b.date)-new Date(a.date)).slice(0,5);
+  if(recentWorkouts.length === 0) {
+    histList.innerHTML = `<div style="padding:16px;color:var(--text3);font-size:13px">Nessun allenamento registrato ancora.</div>`;
+  } else {
+    histList.innerHTML = recentWorkouts.map(w => {
+      const exCount = Object.keys(w.exercises).length;
+      return `
+        <div class="history-item">
+          <h4>${w.session} — ${PROTOCOL[w.session]?.name || ''}</h4>
+          <p>${formatDate(w.date)} · ${exCount} esercizi registrati</p>
+        </div>`;
+    }).join('');
+  }
+}
+
+function calPrev() { if(calMonth === 0){calMonth=11;calYear--;}else calMonth--; renderCalendar(); }
+function calNext() { if(calMonth === 11){calMonth=0;calYear++;}else calMonth++; renderCalendar(); }
+
+// ============================================================
+// LIBRARY
+// ============================================================
+function renderLibrary() {
+  const container = document.getElementById('library-list');
+  container.innerHTML = LIBRARY_ENTRIES.map((entry, i) => `
+    <div class="lib-card" id="lib-${i}">
+      <div class="lib-card-header" onclick="toggleLib(${i})">
+        <h3>${entry.title}</h3>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="lib-card-body">
+        <p>${entry.body}</p>
+        <div class="sci-ref">${entry.ref}</div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleLib(i) {
+  document.getElementById(`lib-${i}`).classList.toggle('open');
+}
+
+// ============================================================
+// EXPORT / IMPORT / RESET
+// ============================================================
+function exportData() {
+  const json = JSON.stringify(appData, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ubhv3_backup_${getTodayKey()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Backup esportato');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if(data.workouts && data.nutrition) {
+        appData = data;
+        DB.save(appData);
+        showToast('Dati importati con successo');
+        renderCalendar();
+      } else {
+        alert('File non valido.');
+      }
+    } catch(err) { alert('Errore nel file JSON.'); }
+  };
+  reader.readAsText(file);
+}
+
+function resetAll() {
+  if(!confirm('Reset completo? Tutti i dati verranno eliminati.')) return;
+  appData = DB.defaults();
+  DB.save(appData);
+  showToast('Dati resettati');
+  renderWorkoutHome();
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString('it-IT', {day:'numeric',month:'short',year:'numeric'});
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderWorkoutHome();
+
+// Service Worker registration
+if('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log('SW registered'))
+      .catch(err => console.warn('SW failed:', err));
+  });
+}
+</script>
+</body>
+</html>

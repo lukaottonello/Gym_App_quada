@@ -1,0 +1,17 @@
+{
+  "name": "Upper Body Hypertrophy v3",
+  "short_name": "UBH v3",
+  "description": "Evidence-Based Upper Body Hypertrophy Program — Quada Edition",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%23000'/%3E%3Ctext x='96' y='120' font-size='100' text-anchor='middle' fill='%2300d4ff' font-family='monospace'%3EU%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
